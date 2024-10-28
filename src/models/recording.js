@@ -22,8 +22,12 @@ import {createFinger, createVector} from "./index";
 import {sticky, config} from "../automotive";
 import {distance} from "../helpers";
 
+let counter = 0;
+
 export default () => {
     const fingers = new Map();
+
+    const recordingID = counter++;
 
     let starttime = undefined;
     let endtime = undefined;
@@ -182,6 +186,9 @@ export default () => {
     }
 
     const record = {
+        get recordingID() {
+            return recordingID;
+        },
         update,
         get starttime() {
             return starttime;
