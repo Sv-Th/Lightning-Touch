@@ -108,10 +108,11 @@ const whitelist = new Set();
 
 /**
  * Called when user start touching dashboard touchscreen
- * @param event
+ * @param event {TouchEvent}
  */
 const handleTouchStart = (event) => {
     if (!isTouchStarted()) {
+        activeRecording = createRecording()
         openBridge();
     }
     if (isBridgeOpen()) {
@@ -123,11 +124,11 @@ const handleTouchStart = (event) => {
 
 /**
  * Called for every finger that stopped touching the screen
- * @param event
  */
 const handleTouchEnd = () => {
-    // if touchend occurs while bridge is still open
-    // we create a new recording
+    const recording = activeRecording
+
+    // if touchend occurs while bridge is still open, close bridge
     if (isBridgeOpen()) {
         closeBridge();
     }
@@ -135,11 +136,13 @@ const handleTouchEnd = () => {
     Log.info(`touchend`);
     touchStarted = false;
 
-    // store end time
-    activeRecording.endtime = Date.now();
+    if (recording) {
+        // store end time
+        recording.endtime = Date.now();
 
-    // start analyzing
-    analyzeEnded(activeRecording);
+        // start analyzing
+        analyzeEnded(recording);
+    }
 
     // reset sticky element
     stickyElements.length = 0;
@@ -147,7 +150,7 @@ const handleTouchEnd = () => {
 
 /**
  * Called for every move the n amount of fingers do on screen
- * @param event
+ * @param event {TouchEvent}
  */
 const handleTouchMove = (event) => {
     if (activeRecording.starttime) {
@@ -178,7 +181,7 @@ const disableBrowserBehavior = () => {
         // prevent window scroll
         document.body.style.overflow = 'hidden';
 
-        if(config.get("ipad")){
+        if (config.get("ipad")) {
             // prevent safari body position issue on refresh
             document.body.style.position = 'fixed';
             document.body.style.left = "0px";
@@ -225,17 +228,8 @@ const openBridge = () => {
  */
 const closeBridge = () => {
     bridgeOpen = false;
-    // start new recording session
-    activeRecording = startRecording(lastTouchStartEvent);
-};
-
-/**
- * Returns a new recording session
- * @param event
- * @returns {}
- */
-const startRecording = (event) => {
-    return createRecording(event);
+    if (activeRecording) activeRecording.registerFingers(lastTouchStartEvent)
+    if (bridgeTimeoutId) Registry.clearTimeout(bridgeTimeoutId);
 };
 
 /**
@@ -272,11 +266,11 @@ const setup = (target, app) => {
     });
 };
 
-const updateConfig = (k, v) =>{
-    if(config.has(k)){
+const updateConfig = (k, v) => {
+    if (config.has(k)) {
         config.set(k, v);
-    }else{
-        Log.warn('Automotive',`unable to update ${k} to ${v}`)
+    } else {
+        Log.warn('Automotive', `unable to update ${k} to ${v}`)
     }
 }
 
@@ -294,12 +288,12 @@ export const dispatch = (event, recording) => {
 
     const touched = getAllTouchedElements(recording.fingers);
     if (touched.length) {
-        for(let i = 0; i < touched.length; i++){
+        for (let i = 0; i < touched.length; i++) {
             const local = getLocalPosition(touched[i], recording);
             if (isFunction(touched[i][event])) {
                 const bubble = touched[i][event](recording, local);
                 // if false is returned explicitly we let event bubble
-                if(bubble !== false){
+                if (bubble !== false) {
                     break;
                 }
             }
@@ -418,8 +412,8 @@ const remove = (list, items = []) => {
 };
 
 const isBlocked = (event) => {
-    if(whitelist.size){
-        if(!whitelist.has(event)){
+    if (whitelist.size) {
+        if (!whitelist.has(event)) {
             return true
         }
     }

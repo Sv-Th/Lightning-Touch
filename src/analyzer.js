@@ -18,7 +18,7 @@
  */
 
 import {Registry} from "@lightningjs/sdk";
-import {dispatch, config, sticky} from "./automotive";
+import {dispatch, config} from "./automotive";
 import {getSwipe} from "./gestures";
 import {distance} from "./helpers";
 
@@ -94,7 +94,7 @@ const handleTap = (recording) => {
             recording.startposition, lastRecording.startposition
         );
         if (Math.abs(dis) < config.get('doubleTapMaxDistance')) {
-            Registry.clearTimeouts();
+            Registry.clearTimeout(tapFireTimeoutId);
             dispatch('_onDoubleTap', recording);
             recording.isTap = false;
         }

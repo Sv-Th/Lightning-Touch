@@ -25,7 +25,7 @@ import {config} from "../automotive";
  * @type {number}
  */
 
-export default (data)=>{
+export default (data) => {
     const startPosition = createVector(
         data.clientX + config.get('viewportOffsetX'),
         data.clientY + config.get('viewportOffsetY')
@@ -50,7 +50,7 @@ export default (data)=>{
      */
     const touchQueue = [];
 
-    const update = (data) =>{
+    const update = (data) => {
         currentPosition = createVector(
             data.clientX + config.get('viewportOffsetX'),
             data.clientY + config.get('viewportOffsetY')
@@ -69,7 +69,7 @@ export default (data)=>{
         });
 
         // make sure we only hold last touch positions
-        if(touchQueue.length > config.get('touchQueueMaxLength')){
+        if (touchQueue.length > config.get('touchQueueMaxLength')) {
             touchQueue.pop();
         }
     };
@@ -88,16 +88,16 @@ export default (data)=>{
         get end() {
             return currentPosition;
         },
-        get position(){
+        get position() {
             return currentPosition;
         },
         get delta() {
             return delta;
         },
-        get queue(){
+        get queue() {
             return touchQueue;
         },
-        get pinching(){
+        get pinching() {
             return pinching;
         }
     }

@@ -22,13 +22,12 @@ import {createFinger, createVector} from "./index";
 import {sticky, config} from "../automotive";
 import {distance} from "../helpers";
 
-export default (event) => {
-    const starttime = Date.now();
-    const touches = event.touches;
+export default () => {
     const fingers = new Map();
-    const len = touches.length;
 
-    let endtime = Date.now();
+    let starttime = undefined;
+    let endtime = undefined;
+    let flagAsHoldTimeout = undefined;
     let isTap = false;
     /**
      * Is user long holding the screen
@@ -42,35 +41,38 @@ export default (event) => {
      */
     let moved = false;
 
-    let dragStarted  = false;
+    let dragStarted = false;
     let pinchStarted = false;
     let isPinched = false;
     let pinch = null;
     let pinchStartDistance = 0;
     let analyzed = false;
 
-    // register every finger
-    for (let i = 0; i < len; i++) {
-        const touch = touches[i];
-        fingers.set(touch.identifier, createFinger(touch));
+    let dragInterval = undefined;
+
+    const registerFingers = (event) => {
+        starttime = Date.now();
+        const touches = event?.touches ?? [];
+        const len = touches.length
+
+        // register every finger
+        for (let i = 0; i < len; i++) {
+            const touch = touches[i];
+            fingers.set(touch.identifier, createFinger(touch));
+        }
+
+        // we schedule a timeout in which this recording flags
+        // itself as a 'hold'. A touchend can clear the timeout
+        // if callback hasn't fired
+        flagAsHoldTimeout = Registry.setTimeout(() => {
+            flagAsHoldTimeout = undefined;
+            if (!isHold) {
+                isHold = true;
+                startDragInterval();
+            }
+        }, config.get('flagAsHoldDelay'));
     }
 
-    // we schedule a timeout in which this recording flags
-    // itself as a 'hold'. A touchend can clear the timeout
-    // if callback hasn't fired
-    Registry.setTimeout(() => {
-        if (!isHold) {
-            isHold = true;
-            Registry.setInterval(() => {
-                endtime = Date.now();
-                if(!dragStarted){
-                    sticky('_onDragStart', record);
-                    dragStarted = true
-                }
-                sticky('_onDrag', record);
-            }, 1);
-        }
-    }, config.get('flagAsHoldDelay'));
 
     /**
      * Update current with recording with data collected from
@@ -95,22 +97,16 @@ export default (event) => {
         if (!isHold && hasFingerMoved()) {
             isHold = true;
             moved = true;
-            Registry.clearTimeouts();
-            Registry.setInterval(() => {
-                endtime = Date.now();
-                if(!dragStarted){
-                    sticky('_onDragStart', record);
-                    dragStarted = true
-                }
-                sticky('_onDrag', record);
-            }, config.get('dragInterval') || 1.5);
+            // Registry.clearTimeouts();
+            if (flagAsHoldTimeout) Registry.clearTimeout(flagAsHoldTimeout)
+            startDragInterval();
         }
 
         const pinch = getPinch();
 
         if (pinch) {
             record.pinch = pinch;
-            if(!pinchStarted){
+            if (!pinchStarted) {
                 sticky('_onPinchStart', record);
                 pinchStarted = true;
             }
@@ -156,7 +152,7 @@ export default (event) => {
         const rDis = cDis - sDis;
 
         if (Math.abs(rDis) > 30 && f1Dis > f1hDis && f2Dis > f2hDis) {
-            if(!pinchStartDistance){
+            if (!pinchStartDistance) {
                 pinchStartDistance = rDis;
             }
             const angle = Math.atan2(f1p.y - f2p.y, f1p.x - f2p.x);
@@ -168,6 +164,22 @@ export default (event) => {
         }
         return false;
     };
+
+    const startDragInterval = () => {
+        dragInterval = Registry.setInterval(() => {
+            endtime = Date.now();
+            if (!dragStarted) {
+                sticky('_onDragStart', record);
+                dragStarted = true
+            }
+            sticky('_onDrag', record);
+        }, config.get('dragInterval') || 1.5);
+    }
+
+    const stopDragInterval = () => {
+        if (dragInterval) Registry.clearInterval(dragInterval)
+        dragInterval = undefined;
+    }
 
     const record = {
         update,
@@ -183,8 +195,8 @@ export default (event) => {
         set endtime(ms) {
             endtime = ms;
 
-            Registry.clearTimeouts();
-            Registry.clearIntervals();
+            if (flagAsHoldTimeout) Registry.clearTimeout(flagAsHoldTimeout);
+            stopDragInterval();
 
             if (isHold) {
                 sticky('_onDragEnd', record);
@@ -248,21 +260,22 @@ export default (event) => {
                 return createVector(0.0, 0.0);
             }
         },
-        get firstFinger(){
+        get firstFinger() {
             return fingers?.values()?.next()?.value || null;
         },
-        get analyzed(){
+        get analyzed() {
             return analyzed;
         },
-        set analyzed(v){
+        set analyzed(v) {
             analyzed = v;
         },
-        set pinch(v){
+        set pinch(v) {
             pinch = v;
         },
-        get pinch(){
+        get pinch() {
             return pinch;
-        }
+        },
+        registerFingers
     };
     return record;
 }
