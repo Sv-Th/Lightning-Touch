@@ -79,9 +79,9 @@ declare namespace Automotive {
 
     function smoothstep(min: number, max: number, value: number): number;
 
-    function getHorizontalForce(finger: Finger): { duration: number, distance: number };
+    function getHorizontalForce(finger: Finger): number;
 
-    function getVerticalForce(finger: Finger): { duration: number, distance: number };
+    function getVerticalForce(finger: Finger): number;
 
     function updateConfig(key: string, value: number | boolean): void;
 }
