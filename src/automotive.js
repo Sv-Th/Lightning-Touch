@@ -114,6 +114,7 @@ const handleTouchStart = (event) => {
     if (!isTouchStarted()) {
         activeRecording = createRecording()
         openBridge();
+        getApplication().children[0]._touchActive?.();
     }
     if (isBridgeOpen()) {
         lastTouchStartEvent = event;
