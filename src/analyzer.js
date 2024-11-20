@@ -84,7 +84,12 @@ const handleTap = (recording) => {
     // if the Ui is not using double tap
     // we can dispatch tap event immediately
     if (!config.get('doubleTapActive')) {
-        dispatch('_onSingleTap', recording);
+        const touched = dispatch('_onSingleTap', recording);
+        if (config.get('releaseSingleTapDelay') !== undefined) {
+            Registry.setTimeout(() => {
+                dispatch('_releaseSingleTap', recording, touched);
+            }, config.get('releaseSingleTapDelay'))
+        }
         return;
     }
 
@@ -102,8 +107,12 @@ const handleTap = (recording) => {
         // if no new tap is clearing this timeout
         // we emit onSingleTap
         tapFireTimeoutId = Registry.setTimeout(() => {
-            dispatch('_onSingleTap', recording);
-            recording.isTap = false;
+            const touched = dispatch('_onSingleTap', recording);
+            if (config.get('releaseSingleTapDelay') !== undefined) {
+                Registry.setTimeout(() => {
+                    dispatch('_releaseSingleTap', recording, touched);
+                }, config.get('releaseSingleTapDelay'))
+            }
         }, config.get('beforeDoubleTapDelay'));
     }
     lastRecording = recording;
@@ -138,8 +147,8 @@ export const getVerticalForce = (finger) => {
 };
 
 
-const calculateForce = ({duration, distance})=>{
-    if(distance === 0 && duration < config.get('maxZeroDistanceDuration')){
+const calculateForce = ({duration, distance}) => {
+    if (distance === 0 && duration < config.get('maxZeroDistanceDuration')) {
         return config.get('maxForce') || 10;
     }
     const power = distance / duration;

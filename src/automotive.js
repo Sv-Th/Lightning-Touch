@@ -282,12 +282,13 @@ const updateConfig = (k, v) => {
  * @param recording
  * @param reset
  */
-export const dispatch = (event, recording) => {
+export const dispatch = (event, recording, touched = undefined) => {
     if (isBlocked(event)) {
         return;
     }
 
-    const touched = getAllTouchedElements(recording.fingers);
+    if (!touched)
+        touched = getAllTouchedElements(recording.fingers);
     if (touched.length) {
         for (let i = 0; i < touched.length; i++) {
             const local = getLocalPosition(touched[i], recording);
@@ -303,6 +304,7 @@ export const dispatch = (event, recording) => {
     }
     // clean up recording
     resetRecordings();
+    return touched;
 };
 
 /**

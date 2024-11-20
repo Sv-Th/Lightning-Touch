@@ -9,12 +9,14 @@ declare interface TouchConfig {
     doubleTapMaxDistance?: number;
     externalTouchScreen?: boolean;
     componentBlockBroadcast?: boolean;
+    touchQueueMaxLength?: number;
     swipeXTreshold?: number;
     swipeYTreshold?: number;
     viewportOffsetX?: number;
     viewportOffsetY?: number;
     dragInterval?: number;
     ipad?: boolean;
+    releaseSingleTapDelay?: number;
 }
 
 declare interface Vector {

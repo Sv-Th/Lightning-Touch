@@ -295,6 +295,7 @@ export const getConfigMap = (settings) => {
         "viewportOffsetX",
         "viewportOffsetY",
         "dragInterval",
+        'releaseSingleTapDelay',
         "ipad"
     ].reduce((config, key) => {
         config.set(key, settings[key]);
