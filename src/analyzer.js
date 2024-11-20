@@ -61,9 +61,7 @@ export const analyzeEnded = (recording) => {
             const defaultEvent = `${type}${direction}`;
             let handled = false;
             [touchesEvent, defaultEvent].forEach((event) => {
-                if (!handled) {
-                    handled = callEvent(event, recording);
-                }
+                callEvent(event, recording);
             });
         }
 
