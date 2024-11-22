@@ -19,6 +19,11 @@ declare interface TouchConfig {
     releaseSingleTapDelay?: number;
 }
 
+declare interface LocalPosition {
+    first: Vector;
+    all: Map<string, Vector>;
+}
+
 declare interface Vector {
     add(v: Vector): Vector;
 

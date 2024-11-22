@@ -123,7 +123,7 @@ const inRange = (affected, x, y) => {
     const stage = getApplication().stage;
     const dpr = stage.getOption('devicePixelRatio');
     const precision = stage.getRenderPrecision();
-    
+
     // loop through affected children
     // and perform collision detection
     while (n--) {
@@ -258,12 +258,15 @@ export const rotatePoint = (cx, cy, angle, p) => {
     return p;
 };
 
-export const getLocalPosition = (component, recording) =>{
-    const {core:{renderContext}} = component;
+export const getLocalPosition = (component, recording) => {
+    const {core: {renderContext}} = component;
     const local = new Map();
-    if(isObject(renderContext)){
-        const {px, py} = renderContext;
-        for(const [id, {position}] of recording.fingers.entries()){
+    if (isObject(renderContext)) {
+        let {px, py} = renderContext;
+        const precision = component.stage.getRenderPrecision() / component.stage.getOption('devicePixelRatio');
+        px = px * precision;
+        py = py * precision;
+        for (const [id, {position}] of recording.fingers.entries()) {
             local.set(id, createVector(
                 position.x - px, position.y - py
             ));
