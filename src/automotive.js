@@ -357,8 +357,6 @@ export const sticky = (event, recording) => {
             }
         }
 
-        console.log(stickyElements.findIndex((e)=>e.__tags?.includes('Seekbar')))
-
         if (!eventCaptured) {
             for (let i = 0; i < stickyElements.length; i++) {
                 const element = stickyElements[i];
