@@ -290,13 +290,30 @@ export const dispatch = (event, recording, touched = undefined) => {
     if (!touched)
         touched = getAllTouchedElements(recording.fingers);
     if (touched.length) {
-        for (let i = 0; i < touched.length; i++) {
+
+        let eventCaptured = false;
+        const captureEvent = `_onTouchCapture`;
+        for (let i = touched.length - 1; i >= 0; --i) {
             const local = getLocalPosition(touched[i], recording);
-            if (isFunction(touched[i][event])) {
-                const bubble = touched[i][event](recording, local);
+            if (isFunction(touched[i][captureEvent])) {
+                const bubble = touched[i][captureEvent](recording, local, event);
                 // if false is returned explicitly we let event bubble
                 if (bubble !== false) {
+                    eventCaptured = true;
                     break;
+                }
+            }
+        }
+
+        if (!eventCaptured) {
+            for (let i = 0; i < touched.length; i++) {
+                const local = getLocalPosition(touched[i], recording);
+                if (isFunction(touched[i][event])) {
+                    const bubble = touched[i][event](recording, local);
+                    // if false is returned explicitly we let event bubble
+                    if (bubble !== false) {
+                        break;
+                    }
                 }
             }
         }
@@ -322,16 +339,33 @@ export const sticky = (event, recording) => {
     // on first fire after a new recording has started
     // we collect the elements;
     if (!stickyElements.length) {
-        stickyElements = getAllTouchedElements(recording.fingers).filter((element) => {
-            return element[event];
-        });
+        stickyElements = getAllTouchedElements(recording.fingers)
     }
     if (stickyElements.length) {
-        for (let i = 0; i < stickyElements.length; i++) {
-            const element = stickyElements[i];
-            if (isFunction(element[event])) {
-                const local = getLocalPosition(element, recording);
-                if (element[event](recording, local) !== false) break;
+
+        let eventCaptured = false;
+        const captureEvent = `_onTouchCapture`;
+        for (let i = stickyElements.length - 1; i >= 0; --i) {
+            if (isFunction(stickyElements[i][captureEvent])) {
+                const local = getLocalPosition(stickyElements[i], recording);
+                const bubble = stickyElements[i][captureEvent](recording, local, event);
+                // if false is returned explicitly we let event bubble
+                if (bubble !== false) {
+                    eventCaptured = true;
+                    break;
+                }
+            }
+        }
+
+        console.log(stickyElements.findIndex((e)=>e.__tags?.includes('Seekbar')))
+
+        if (!eventCaptured) {
+            for (let i = 0; i < stickyElements.length; i++) {
+                const element = stickyElements[i];
+                if (isFunction(element[event])) {
+                    const local = getLocalPosition(element, recording);
+                    if (element[event](recording, local) !== false) break;
+                }
             }
         }
     }
