@@ -143,8 +143,10 @@ const inRange = (affected, x, y) => {
             continue;
         }
 
-        if (child.parent.core._scissor && !testCollision(x, y, ...child.parent.core._scissor)) {
-            continue;
+        if (child.parent.core._scissor) {
+            const scissor = child.parent.core._scissor.map((v) => v * precision);
+            if (!testCollision(x, y, ...scissor))
+                continue;
         }
 
         if (child.rotation) {
