@@ -166,7 +166,7 @@ export const findSlope = (finger, axis = 'x') => {
     let last = 0;
     let affected = 0;
 
-    for (let i = 0; i < len - 4; i++) {
+    for (let i = 0; i < len - 1; i++) {
         const dis = Math.abs(
             queue[0].position[axis] - queue[i].position[axis]
         );
