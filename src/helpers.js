@@ -122,7 +122,8 @@ const inRange = (affected, x, y) => {
     const candidates = [];
     const stage = getApplication().stage;
     const dpr = stage.getOption('devicePixelRatio');
-    const precision = stage.getRenderPrecision();
+    const canvasScale = stage.getCanvas().getBoundingClientRect().width/ stage.getOption('w');
+    const precision = stage.getRenderPrecision() * canvasScale;
 
     // loop through affected children
     // and perform collision detection
