@@ -98,7 +98,7 @@ const findChildren = (bucket, parents) => {
     while (n--) {
         const parent = parents[n];
         // only add active children
-        if (parent.__active) {
+        if (parent.__active && parent.alpha > 0.003) {
             // potentially slow
             // add collision flag?
             bucket.push(parent);
